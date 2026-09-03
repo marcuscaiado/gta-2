@@ -359,7 +359,7 @@
       barEl.style.width = '100%';
       tipEl.textContent = 'Inicializando emulador PlayStation 1 WebAssembly...';
 
-      const mergedBlob = new Blob(buffers, { type: 'application/octet-stream' });
+      const mergedBlob = new File(buffers, 'gta2.chd', { type: 'application/octet-stream' });
       return URL.createObjectURL(mergedBlob);
     }
 
@@ -372,7 +372,8 @@
         // Configure EmulatorJS PSX Core
         window.EJS_player = '#game';
         window.EJS_core = 'psx';
-        window.EJS_gameName = 'Grand Theft Auto 2 (PS1)';
+        window.EJS_gameName = 'Grand Theft Auto 2.chd';
+        window.EJS_disableCue = true;
         window.EJS_color = '#ffd32a';
         window.EJS_startOnLoaded = false;
         window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
