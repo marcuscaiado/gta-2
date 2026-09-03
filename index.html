@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -320,60 +320,12 @@
       if (c) c.focus();
     });
 
-    // IndexedDB ROM Cache Manager
-    const DB_NAME = 'GTA2_PS1_CACHE';
-    const STORE_NAME = 'rom_store';
-
-    function getCachedBlob() {
-      return new Promise((resolve) => {
-        const req = indexedDB.open(DB_NAME, 1);
-        req.onupgradeneeded = () => req.result.createObjectStore(STORE_NAME);
-        req.onsuccess = () => {
-          const db = req.result;
-          try {
-            const tx = db.transaction(STORE_NAME, 'readonly');
-            const getReq = tx.objectStore(STORE_NAME).get('gta2_chd');
-            getReq.onsuccess = () => resolve(getReq.result || null);
-            getReq.onerror = () => resolve(null);
-          } catch (_) { resolve(null); }
-        };
-        req.onerror = () => resolve(null);
-      });
-    }
-
-    function saveBlobToCache(blob) {
-      return new Promise((resolve) => {
-        const req = indexedDB.open(DB_NAME, 1);
-        req.onsuccess = () => {
-          const db = req.result;
-          try {
-            const tx = db.transaction(STORE_NAME, 'readwrite');
-            tx.objectStore(STORE_NAME).put(blob, 'gta2_chd');
-            tx.oncomplete = () => resolve(true);
-            tx.onerror = () => resolve(false);
-          } catch (_) { resolve(false); }
-        };
-        req.onerror = () => resolve(false);
-      });
-    }
-
-    // Multi-part Downloader with Parallel Concurrency & Progress
+    // Multi-part Parallel Downloader
     async function loadGta2Rom() {
       const statusEl = document.getElementById('load-status');
       const barEl = document.getElementById('load-bar');
       const tipEl = document.getElementById('load-tip');
 
-      // 1. Check local cache
-      statusEl.textContent = 'Verificando cache local...';
-      const cached = await getCachedBlob();
-      if (cached && cached.size > 50000000) {
-        statusEl.textContent = '⚡ Carregando do cache local instantâneo...';
-        barEl.style.width = '100%';
-        tipEl.textContent = 'Inicializando emulador PlayStation 1 WebAssembly...';
-        return URL.createObjectURL(cached);
-      }
-
-      // 2. Download 20 parts from high-speed CDN
       const baseUrl = 'https://cdn.jsdelivr.net/gh/bubbls/ugss@c0f558516ac34b29074cd183d89c329bb95e7c55/GTA%202/Grand%20Theft%20Auto%202%20(USA).chd';
       const totalParts = 20;
       const buffers = new Array(totalParts);
@@ -381,50 +333,41 @@
 
       statusEl.textContent = `Baixando Grand Theft Auto 2 (PS1)... 0/${totalParts}`;
 
-      const concurrency = 4;
-      let currentIndex = 0;
-
-      async function worker() {
-        while (currentIndex < totalParts) {
-          const idx = currentIndex++;
-          const pad = String(idx + 1).padStart(2, '0');
-          const partUrl = `${baseUrl}.part${pad}`;
-
-          try {
-            const res = await fetch(partUrl);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const buf = await res.arrayBuffer();
-            buffers[idx] = buf;
-            completed++;
-            const pct = Math.round((completed / totalParts) * 100);
-            barEl.style.width = `${pct}%`;
-            statusEl.textContent = `Baixando Grand Theft Auto 2 (PS1)... ${pct}% (${completed}/${totalParts})`;
-          } catch (e) {
-            console.error(`Error downloading part ${pad}:`, e);
-            throw e;
-          }
-        }
+      const promises = [];
+      for (let i = 0; i < totalParts; i++) {
+        const pad = String(i + 1).padStart(2, '0');
+        const partUrl = `${baseUrl}.part${pad}`;
+        promises.push(
+          fetch(partUrl)
+            .then(res => {
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              return res.arrayBuffer();
+            })
+            .then(buf => {
+              buffers[i] = buf;
+              completed++;
+              const pct = Math.round((completed / totalParts) * 100);
+              barEl.style.width = `${pct}%`;
+              statusEl.textContent = `Baixando Grand Theft Auto 2 (PS1)... ${pct}% (${completed}/${totalParts})`;
+            })
+        );
       }
 
-      const workers = Array.from({ length: concurrency }, () => worker());
-      await Promise.all(workers);
+      await Promise.all(promises);
 
-      // 3. Assemble and Cache
-      statusEl.textContent = 'Remontando imagem do disco na memória...';
+      statusEl.textContent = 'Remontando imagem do CD na memória...';
       barEl.style.width = '100%';
-      const mergedBlob = new Blob(buffers, { type: 'application/octet-stream' });
-      
-      // Save in background so user doesn't wait
-      saveBlobToCache(mergedBlob).catch(() => {});
+      tipEl.textContent = 'Inicializando emulador PlayStation 1 WebAssembly...';
 
-      tipEl.textContent = 'Iniciando BIOS e CPU MIPS do PlayStation 1...';
+      const mergedBlob = new Blob(buffers, { type: 'application/octet-stream' });
       return URL.createObjectURL(mergedBlob);
     }
 
     async function initEmulator() {
       try {
         const gameUrl = await loadGta2Rom();
-        document.getElementById('loading-screen').style.display = 'none';
+        const screen = document.getElementById('loading-screen');
+        if (screen) screen.style.display = 'none';
 
         // Configure EmulatorJS PSX Core
         window.EJS_player = '#game';
