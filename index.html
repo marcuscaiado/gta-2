@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>🚗 GRAND THEFT AUTO 2 (GBC) 🚗 | Nopex Arcade</title>
-  <meta name="description" content="Jogue Grand Theft Auto 2 (Game Boy Color) da Rockstar Games online no navegador a 60 FPS com perseguições policiais, roubo de carros e tiroteios!">
+  <title>🚗 GRAND THEFT AUTO 2 (PS1) 🚗 | Nopex Arcade</title>
+  <meta name="description" content="Jogue Grand Theft Auto 2 (PlayStation 1) da Rockstar Games online no navegador a 60 FPS com rádios originais, pedestres falantes, roubo de carros e perseguições policiais!">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -92,6 +92,80 @@
       gap: 8px;
     }
 
+    /* Loading Screen Overlay */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #1b1e30 0%, #080911 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 15000;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .rockstar-logo {
+      font-family: 'Outfit', sans-serif;
+      font-size: 64px;
+      font-weight: 900;
+      color: #000;
+      background: #ffd32a;
+      width: 90px;
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px;
+      box-shadow: 0 0 35px rgba(255, 211, 42, 0.6);
+      margin-bottom: 20px;
+      border: 3px solid #fff;
+    }
+
+    .loading-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 15px;
+      color: #ffd32a;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+
+    .loading-status {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 22px;
+      font-weight: 600;
+    }
+
+    .progress-bar-wrap {
+      width: 100%;
+      max-width: 440px;
+      height: 14px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 211, 42, 0.4);
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ffd32a, #ff3838);
+      border-radius: 10px;
+      transition: width 0.15s ease-out;
+      box-shadow: 0 0 12px #ffd32a;
+    }
+
+    .loading-tip {
+      font-size: 12px;
+      color: #64748b;
+      max-width: 400px;
+      line-height: 1.5;
+    }
+
     /* Controls Modal */
     #controls-modal {
       position: fixed;
@@ -109,7 +183,7 @@
       border: 2px solid #ffd32a;
       border-radius: 12px;
       padding: 24px 30px;
-      max-width: 480px;
+      max-width: 500px;
       width: 90%;
       box-shadow: 0 0 35px rgba(255, 211, 42, 0.4);
     }
@@ -173,12 +247,25 @@
   </style>
 </head>
 <body>
+  <!-- Loading Screen Overlay -->
+  <div id="loading-screen">
+    <div class="rockstar-logo">R★</div>
+    <div class="loading-title">GRAND THEFT AUTO 2</div>
+    <div class="loading-status" id="load-status">Inicializando download streaming...</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="load-bar"></div>
+    </div>
+    <div class="loading-tip" id="load-tip">
+      ⚡ Baixando imagem do CD particionada via CDN de alta velocidade. O jogo será salvo no cache local (IndexedDB) para abrir instantaneamente nas próximas partidas!
+    </div>
+  </div>
+
   <!-- Floating Top Bar -->
   <div class="floating-bar">
     <a href="https://marcuscaiado.github.io/nopex-arcade/" class="pill-btn" title="Voltar ao Fliperama 3D">
       ⬅️ FLIPERAMA
     </a>
-    <div class="floating-title">GTA 2 (GBC)</div>
+    <div class="floating-title">GTA 2 (PS1)</div>
     <div class="floating-actions">
       <button id="btn-controls" class="pill-btn" title="Ver Controles">🎮 Controles</button>
       <button id="btn-fullscreen" class="pill-btn" title="Tela Cheia">🔲</button>
@@ -193,24 +280,26 @@
   <!-- Controls Modal -->
   <div id="controls-modal">
     <div class="modal-box">
-      <div class="modal-title">🚗 CONTROLES GTA 2</div>
+      <div class="modal-title">🚗 CONTROLES GTA 2 (PS1)</div>
       <div class="controls-grid">
         <div class="ctrl-item"><span>Mover / Pilotar</span> <span class="key-badge">Setas / D-Pad</span></div>
-        <div class="ctrl-item"><span>Acelerar / Atirar</span> <span class="key-badge">Z (Botão B)</span></div>
-        <div class="ctrl-item"><span>Frear / Entrar Carro</span> <span class="key-badge">A (Botão A)</span></div>
-        <div class="ctrl-item"><span>Trocar Arma</span> <span class="key-badge">Shift (Select)</span></div>
-        <div class="ctrl-item"><span>Pausar / Menu</span> <span class="key-badge">Enter (Start)</span></div>
-        <div class="ctrl-item"><span>Buzinar</span> <span class="key-badge">Shift + Cima</span></div>
+        <div class="ctrl-item"><span>Acelerar</span> <span class="key-badge">X (Botão Cross)</span></div>
+        <div class="ctrl-item"><span>Atirar / Soco</span> <span class="key-badge">Z (Botão Square)</span></div>
+        <div class="ctrl-item"><span>Entrar / Sair Carro</span> <span class="key-badge">C (Botão Circle)</span></div>
+        <div class="ctrl-item"><span>Freio de Mão</span> <span class="key-badge">A (Triangle)</span></div>
+        <div class="ctrl-item"><span>Trocar de Arma</span> <span class="key-badge">Q / E (L1 / R1)</span></div>
+        <div class="ctrl-item"><span>Buzina / Rádio</span> <span class="key-badge">Shift (Select)</span></div>
+        <div class="ctrl-item"><span>Pausar / Missões</span> <span class="key-badge">Enter (Start)</span></div>
       </div>
       <p style="font-size: 11px; color: #94a3b8; margin-bottom: 16px; text-align: center;">
-        💡 Controles touch virtuais no celular e controles USB/Bluetooth funcionam nativamente!
+        💡 Controles touch virtuais no celular e controles USB/Bluetooth (PlayStation / Xbox) funcionam nativamente!
       </p>
       <button id="modal-close" class="modal-close-btn">FECHAR E JOGAR</button>
     </div>
   </div>
 
   <script>
-    // Controls modal
+    // Controls Modal
     const modal = document.getElementById('controls-modal');
     document.getElementById('btn-controls').addEventListener('click', () => modal.style.display = 'flex');
     document.getElementById('modal-close').addEventListener('click', () => modal.style.display = 'none');
@@ -231,15 +320,132 @@
       if (c) c.focus();
     });
 
-    // EmulatorJS Engine Config
-    window.EJS_player = '#game';
-    window.EJS_core = 'gb';
-    window.EJS_gameName = 'Grand Theft Auto 2';
-    window.EJS_color = '#ffd32a';
-    window.EJS_startOnLoaded = true;
-    window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-    window.EJS_gameUrl = 'roms/gta2.gbc';
+    // IndexedDB ROM Cache Manager
+    const DB_NAME = 'GTA2_PS1_CACHE';
+    const STORE_NAME = 'rom_store';
+
+    function getCachedBlob() {
+      return new Promise((resolve) => {
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = () => req.result.createObjectStore(STORE_NAME);
+        req.onsuccess = () => {
+          const db = req.result;
+          try {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const getReq = tx.objectStore(STORE_NAME).get('gta2_chd');
+            getReq.onsuccess = () => resolve(getReq.result || null);
+            getReq.onerror = () => resolve(null);
+          } catch (_) { resolve(null); }
+        };
+        req.onerror = () => resolve(null);
+      });
+    }
+
+    function saveBlobToCache(blob) {
+      return new Promise((resolve) => {
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onsuccess = () => {
+          const db = req.result;
+          try {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            tx.objectStore(STORE_NAME).put(blob, 'gta2_chd');
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => resolve(false);
+          } catch (_) { resolve(false); }
+        };
+        req.onerror = () => resolve(false);
+      });
+    }
+
+    // Multi-part Downloader with Parallel Concurrency & Progress
+    async function loadGta2Rom() {
+      const statusEl = document.getElementById('load-status');
+      const barEl = document.getElementById('load-bar');
+      const tipEl = document.getElementById('load-tip');
+
+      // 1. Check local cache
+      statusEl.textContent = 'Verificando cache local...';
+      const cached = await getCachedBlob();
+      if (cached && cached.size > 50000000) {
+        statusEl.textContent = '⚡ Carregando do cache local instantâneo...';
+        barEl.style.width = '100%';
+        tipEl.textContent = 'Inicializando emulador PlayStation 1 WebAssembly...';
+        return URL.createObjectURL(cached);
+      }
+
+      // 2. Download 20 parts from high-speed CDN
+      const baseUrl = 'https://cdn.jsdelivr.net/gh/bubbls/ugss@c0f558516ac34b29074cd183d89c329bb95e7c55/GTA%202/Grand%20Theft%20Auto%202%20(USA).chd';
+      const totalParts = 20;
+      const buffers = new Array(totalParts);
+      let completed = 0;
+
+      statusEl.textContent = `Baixando Grand Theft Auto 2 (PS1)... 0/${totalParts}`;
+
+      const concurrency = 4;
+      let currentIndex = 0;
+
+      async function worker() {
+        while (currentIndex < totalParts) {
+          const idx = currentIndex++;
+          const pad = String(idx + 1).padStart(2, '0');
+          const partUrl = `${baseUrl}.part${pad}`;
+
+          try {
+            const res = await fetch(partUrl);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const buf = await res.arrayBuffer();
+            buffers[idx] = buf;
+            completed++;
+            const pct = Math.round((completed / totalParts) * 100);
+            barEl.style.width = `${pct}%`;
+            statusEl.textContent = `Baixando Grand Theft Auto 2 (PS1)... ${pct}% (${completed}/${totalParts})`;
+          } catch (e) {
+            console.error(`Error downloading part ${pad}:`, e);
+            throw e;
+          }
+        }
+      }
+
+      const workers = Array.from({ length: concurrency }, () => worker());
+      await Promise.all(workers);
+
+      // 3. Assemble and Cache
+      statusEl.textContent = 'Remontando imagem do disco na memória...';
+      barEl.style.width = '100%';
+      const mergedBlob = new Blob(buffers, { type: 'application/octet-stream' });
+      
+      // Save in background so user doesn't wait
+      saveBlobToCache(mergedBlob).catch(() => {});
+
+      tipEl.textContent = 'Iniciando BIOS e CPU MIPS do PlayStation 1...';
+      return URL.createObjectURL(mergedBlob);
+    }
+
+    async function initEmulator() {
+      try {
+        const gameUrl = await loadGta2Rom();
+        document.getElementById('loading-screen').style.display = 'none';
+
+        // Configure EmulatorJS PSX Core
+        window.EJS_player = '#game';
+        window.EJS_core = 'psx';
+        window.EJS_gameName = 'Grand Theft Auto 2 (PS1)';
+        window.EJS_color = '#ffd32a';
+        window.EJS_startOnLoaded = true;
+        window.EJS_pathtodata = 'https://cdn.jsdelivr.net/gh/genizy/emu@master/';
+        window.EJS_biosUrl = 'https://cdn.jsdelivr.net/gh/Abdess/retroarch_system@5f96368f6dbad5851cdb16a5041fefec4bdcd305/Sony%20-%20PlayStation/scph5501.bin';
+        window.EJS_gameUrl = gameUrl;
+
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/gh/genizy/emu@master/loader.js';
+        document.body.appendChild(s);
+      } catch (err) {
+        document.getElementById('load-status').textContent = 'Erro ao baixar o jogo. Recarregue a página.';
+        console.error(err);
+      }
+    }
+
+    initEmulator();
   </script>
-  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 </body>
 </html>
